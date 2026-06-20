@@ -11,43 +11,39 @@ body{
     margin-top: 40px;
 }
 
-h1{
-    margin-bottom: 20px;
-}
-
 .container{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:15px;
 }
 
 .slot{
-    padding: 15px 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    cursor: pointer;
-    min-width: 160px;
-    transition: 0.2s;
+    padding:18px 22px;
+    border:1px solid #ccc;
+    border-radius:12px;
+    cursor:pointer;
+    min-width:220px;
+    transition:0.2s;
+    background:white;
 }
 
 .slot:hover{
-    background: #f0f0f0;
+    background:#f0f0f0;
 }
 </style>
 </head>
 
 <body>
 
-<h1>Bitte Termin wählen</h1>
+<h1>Bitte Zeitraum auswählen</h1>
 
 <div class="container" id="slots"></div>
 
 <script>
 
-const API = "https://script.google.com/macros/s/AKfycbwjIGapJstUg6NGhllB6NXXCSD9f1hOsswtYKwxiGeFLe1qEXJmKIBtiwil0C6Kg5HN/exec";
-
-async function loadSlots(){
+const API = "https://script.google.com/macros/s/AKfycbzvwv7PtuIUlF7AwF85sUZUcHlH0_f9esIKXf5ZrC24MYqeHLGYLs2xUsLAWAvhbQGQ/exec"
+async function load(){
 
     const res = await fetch(API);
     const booked = await res.json();
@@ -55,42 +51,35 @@ async function loadSlots(){
     const container = document.getElementById("slots");
     container.innerHTML = "";
 
-    // Beispiel fixe Slots (du kannst sie im Sheet pflegen)
-    const allSlots = [
-        "01.07. 10:00",
-        "01.07. 11:00",
-        "01.07. 14:00",
-        "02.07. 10:00",
-        "02.07. 14:00"
-    ];
-
-    const free = allSlots.filter(s => !booked.includes(s));
-
-    free.forEach(s => {
+    booked.forEach(t => {
 
         const div = document.createElement("div");
         div.className = "slot";
-        div.innerText = s;
+        div.innerText = t;
 
         div.onclick = async () => {
+
+            const ok = confirm("Diesen Zeitraum buchen?\n\n" + t);
+
+            if(!ok) return;
 
             await fetch(API, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded"
                 },
-                body: "termin=" + encodeURIComponent(s)
+                body: "termin=" + encodeURIComponent(t)
             });
 
-            alert("Termin reserviert: " + s);
-            loadSlots();
+            alert("Gebucht: " + t);
+            load();
         };
 
         container.appendChild(div);
     });
 }
 
-loadSlots();
+load();
 
 </script>
 
