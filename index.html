@@ -2,26 +2,37 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Slots</title>
+<title>Terminwahl</title>
 
 <style>
 body{
     font-family: Arial;
     text-align: center;
-    margin-top: 50px;
+    margin-top: 40px;
 }
 
-.kachel{
-    display:inline-block;
-    padding:20px;
-    margin:10px;
-    border:1px solid #ccc;
-    border-radius:10px;
-    cursor:pointer;
+h1{
+    margin-bottom: 20px;
 }
 
-.kachel:hover{
-    background:#eee;
+.container{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.slot{
+    padding: 15px 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    cursor: pointer;
+    min-width: 160px;
+    transition: 0.2s;
+}
+
+.slot:hover{
+    background: #f0f0f0;
 }
 </style>
 </head>
@@ -30,28 +41,57 @@ body{
 
 <h1>Bitte Termin wählen</h1>
 
-<div id="slots"></div>
+<div class="container" id="slots"></div>
 
 <script>
-const slots = [
-"01.07. 10:00",
-"01.07. 11:00",
-"01.07. 14:00"
-];
 
-const container = document.getElementById("slots");
+const API = "https://script.google.com/macros/s/AKfycbwjIGapJstUg6NGhllB6NXXCSD9f1hOsswtYKwxiGeFLe1qEXJmKIBtiwil0C6Kg5HN/exec";
 
-slots.forEach(s => {
-    const div = document.createElement("div");
-    div.className = "kachel";
-    div.innerText = s;
+async function loadSlots(){
 
-    div.onclick = () => {
-        alert("Ausgewählt: " + s);
-    };
+    const res = await fetch(API);
+    const booked = await res.json();
 
-    container.appendChild(div);
-});
+    const container = document.getElementById("slots");
+    container.innerHTML = "";
+
+    // Beispiel fixe Slots (du kannst sie im Sheet pflegen)
+    const allSlots = [
+        "01.07. 10:00",
+        "01.07. 11:00",
+        "01.07. 14:00",
+        "02.07. 10:00",
+        "02.07. 14:00"
+    ];
+
+    const free = allSlots.filter(s => !booked.includes(s));
+
+    free.forEach(s => {
+
+        const div = document.createElement("div");
+        div.className = "slot";
+        div.innerText = s;
+
+        div.onclick = async () => {
+
+            await fetch(API, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: "termin=" + encodeURIComponent(s)
+            });
+
+            alert("Termin reserviert: " + s);
+            loadSlots();
+        };
+
+        container.appendChild(div);
+    });
+}
+
+loadSlots();
+
 </script>
 
 </body>
